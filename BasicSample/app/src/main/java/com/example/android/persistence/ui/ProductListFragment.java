@@ -16,19 +16,20 @@
 
 package com.example.android.persistence.ui;
 
+import android.os.Bundle;
 import android.text.Editable;
-import android.view.View.OnClickListener;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.databinding.DataBindingUtil;
-import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.example.android.persistence.R;
 import com.example.android.persistence.databinding.ListFragmentBinding;
@@ -43,13 +44,12 @@ public class ProductListFragment extends Fragment {
     public static final String TAG = "ProductListFragment";
 
     private ProductAdapter mProductAdapter;
-
     private ListFragmentBinding mBinding;
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.list_fragment, container, false);
 
         mProductAdapter = new ProductAdapter(mProductClickCallback);
@@ -64,7 +64,7 @@ public class ProductListFragment extends Fragment {
         final ProductListViewModel viewModel =
                 ViewModelProviders.of(this).get(ProductListViewModel.class);
 
-        mBinding.productsSearchBtn.setOnClickListener(new OnClickListener() {
+        mBinding.productsSearchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Editable query = mBinding.productsSearchBox.getText();
@@ -79,7 +79,7 @@ public class ProductListFragment extends Fragment {
         subscribeUi(viewModel.getProducts());
     }
 
-    private void subscribeUi(LiveData<List<ProductEntity>> liveData) {
+    private void subscribeUi(@NonNull LiveData<List<ProductEntity>> liveData) {
         // Update the list when the data changes
         liveData.observe(this, new Observer<List<ProductEntity>>() {
             @Override

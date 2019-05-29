@@ -17,6 +17,9 @@
 package com.example.android.persistence;
 
 import android.app.Application;
+
+import androidx.annotation.NonNull;
+
 import com.example.android.persistence.db.AppDatabase;
 
 /**
@@ -33,10 +36,12 @@ public class BasicApp extends Application {
         mAppExecutors = new AppExecutors();
     }
 
+    @NonNull
     public AppDatabase getDatabase() {
         return AppDatabase.getInstance(this, mAppExecutors);
     }
 
+    @NonNull
     public DataRepository getRepository() {
         return DataRepository.getInstance(getDatabase());
     }
