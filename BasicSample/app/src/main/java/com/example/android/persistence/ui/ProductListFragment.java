@@ -28,21 +28,26 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.android.persistence.R;
 import com.example.android.persistence.databinding.ListFragmentBinding;
 import com.example.android.persistence.db.entity.ProductEntity;
-import com.example.android.persistence.model.Product;
 import com.example.android.persistence.viewmodel.ProductListViewModel;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ProductListFragment extends Fragment {
 
-    public static final String TAG = "ProductListFragment";
-
+    static final String TAG = "ProductListFragment";
+    private final ProductClickCallback mProductClickCallback = product -> {
+        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+            MainActivity mainActivity = (MainActivity) getActivity();
+            Objects.requireNonNull(mainActivity);
+            mainActivity.show(product);
+        }
+    };
     private ProductAdapter mProductAdapter;
     private ListFragmentBinding mBinding;
 
@@ -64,15 +69,12 @@ public class ProductListFragment extends Fragment {
         final ProductListViewModel viewModel =
                 ViewModelProviders.of(this).get(ProductListViewModel.class);
 
-        mBinding.productsSearchBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Editable query = mBinding.productsSearchBox.getText();
-                if (query == null || query.toString().isEmpty()) {
-                    subscribeUi(viewModel.getProducts());
-                } else {
-                    subscribeUi(viewModel.searchProducts("*" + query + "*"));
-                }
+        mBinding.productsSearchBtn.setOnClickListener(v -> {
+            Editable query = mBinding.productsSearchBox.getText();
+            if (query == null || query.toString().isEmpty()) {
+                subscribeUi(viewModel.getProducts());
+            } else {
+                subscribeUi(viewModel.searchProducts("*" + query + "*"));
             }
         });
 
@@ -81,29 +83,16 @@ public class ProductListFragment extends Fragment {
 
     private void subscribeUi(@NonNull LiveData<List<ProductEntity>> liveData) {
         // Update the list when the data changes
-        liveData.observe(this, new Observer<List<ProductEntity>>() {
-            @Override
-            public void onChanged(@Nullable List<ProductEntity> myProducts) {
-                if (myProducts != null) {
-                    mBinding.setIsLoading(false);
-                    mProductAdapter.setProductList(myProducts);
-                } else {
-                    mBinding.setIsLoading(true);
-                }
-                // espresso does not know how to wait for data binding's loop so we execute changes
-                // sync.
-                mBinding.executePendingBindings();
+        liveData.observe(this, myProducts -> {
+            if (myProducts != null) {
+                mBinding.setIsLoading(false);
+                mProductAdapter.setProductList(myProducts);
+            } else {
+                mBinding.setIsLoading(true);
             }
+            // espresso does not know how to wait for data binding's loop so we execute changes
+            // sync.
+            mBinding.executePendingBindings();
         });
     }
-
-    private final ProductClickCallback mProductClickCallback = new ProductClickCallback() {
-        @Override
-        public void onClick(Product product) {
-
-            if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
-                ((MainActivity) getActivity()).show(product);
-            }
-        }
-    };
 }
